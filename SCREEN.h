@@ -53,7 +53,8 @@ public:
 	void DisplayBrickGameScreen(class Rectangle &b);
 	void UpdateBrickGameRacket();
 	void UpdateBallForBrickGame();
-	void CollideCheck();
+	void SetBallValueForBrickGame();
+	void DisplayLostScreen();
 	SCREEN();
 	~SCREEN();
 };

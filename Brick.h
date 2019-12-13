@@ -1,5 +1,6 @@
 #pragma once
 #include "RACKET.h"
+#include "BALL.h"
 #include <iostream>
 #include <vector>
 #include <time.h>
@@ -23,7 +24,7 @@ public:
 	void InitRandomMatch(); // khoi tao cac vien gach ngau nhien
 	void Draw(); // ve cac vien gach
 	void DeleteABrick(int i,int j); // xoa 1 vien gach
-	RACKET isCollide(int x, int y);
+	RACKET isCollide(BALL &ball);
 	Brick();
 	~Brick();
 };

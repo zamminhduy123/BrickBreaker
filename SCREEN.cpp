@@ -3,7 +3,7 @@
 
 #define lBrickRacket 
 bool brickGame = false;
-
+bool onBrickGame = false;
 
 int SCREEN::getterWidth()//Hàm lấy chiều rộng của cửa sổ trò chơi, trả về Width
 {
@@ -257,8 +257,15 @@ void SCREEN::DisplayScreen()//Hàm vẽ màn hình ở tất cả các giai đo�
 			brick.InitRandomMatch();
 			brickGame = true;
 		}
+		if (!onBrickGame) {
+			onBrickGame = !onBrickGame;
+			SetBallValueForBrickGame();
+		}
 		brick.Draw();
 		DisplayBrickGameScreen(b);
+		break;
+	case 6:
+		DisplayLostScreen();
 		break;
 	}
 	//
@@ -343,94 +350,53 @@ void SCREEN::UpdateBall()//Hàm cập nhật thông tin của quả bóng (tọa
 	ball.y += ball.yDirection*ball.CurrentSpeed;//Tương tự với hoành độ, tung độ của quả bóng cũng như vậy
 }
 
-void SCREEN::CollideCheck() {
-	for (int i = 0; i < maxBrick; i++) {
-		for (int j = 0; j < maxBrick; j++) {
-
-		}
-	}
-}
-
 void SCREEN::UpdateBallForBrickGame() {
-
-	if (ball.x + ball.r >= Width || ball.x - ball.r <= 0) {
-		float k = fabs((Height - ball.y)) / Height;
-		ball.xDirection *= -1;
-		if (ball.yDirection < 0) {
-			ball.yDirection = -k;
-		}
-		else {
-			ball.yDirection = k;
-		}
-	} 
 	if (ball.y <= 0) {
-		ball.x = Width / 2;						//
-		ball.y = TopBar / 2;					//
-		ball.xDirection *= -1;					//
-		ball.yDirection = 0;					//
-		ball.CurrentSpeed = ball.FirstSpeed;	//
+		stage = 6;
+		return;
 	}
-	if (ball.y + ball.r > TopBar) {	//Nếu y+r (viền ngoài phía trên của quả bóng) > TopBar, tức là chạm phần biên trên
-		ball.yDirection *= -1;
-		ball.y += ball.yDirection*ball.CurrentSpeed;
+	// TH ra chạm 2 biên trái phải
+	if (ball.x + ball.r >= Width || ball.x - ball.r <= 0) {
+		ball.xDirection *= -1;
 	} 
-	else if (ball.x - ball.r > racketForBrickGame.Left && ball.x + ball.r < racketForBrickGame.Right && ball.y - ball.yDirection*ball.CurrentSpeed  <= racketForBrickGame.Top) {
-		float length = racketForBrickGame.Right - racketForBrickGame.Left;
-		float k = fabs(ball.x - (racketForBrickGame.Left+racketForBrickGame.Right) / 2) / length;
+	// chạm biên trên
+	if (ball.y + ball.r > TopBar) {
 		ball.yDirection *= -1;
+	} 
+	// TH chạm thanh chơi
+	//ball.x - ball.r > racketForBrickGame.Left && ball.x + ball.r < racketForBrickGame.Right && ball.y - ball.yDirection*ball.CurrentSpeed <= racketForBrickGame.Top
+	else if (racketForBrickGame.intersects(ball)) {
+		float k = fabs(ball.x - (racketForBrickGame.Left + racketForBrickGame.Right) / 2) / (racketForBrickGame.Right - racketForBrickGame.Left);
 		if (racketForBrickGame.Status == 2) {
-			ball.xDirection = k;
+			ball.setXDir(k);
 		}
 		else {
-			ball.xDirection = -k;
+			ball.setXDir(-k);
 		}
 		ball.CurrentSpeed += ball.CurrentSpeed*ball.IncreaseSpeed;
-		racketForBrickGame.Speed += racketForBrickGame.Speed *(ball.IncreaseSpeed / 2);
-		ball.y = racketForBrickGame.Top + ball.r;
+		racketForBrickGame.Speed += racketForBrickGame.Speed * ball.IncreaseSpeed / 2;
 	}
 	else {
-		RACKET touchedBrick = brick.isCollide(ball.x, ball.y + ball.yDirection*ball.CurrentSpeed);
-		if (touchedBrick.Top != -107374176) {
-			int brickWidth = touchedBrick.Right - touchedBrick.Left;
-			int brickHeigth = touchedBrick.Top - touchedBrick.Bottom;
-			if (ball.y + ball.r <= touchedBrick.Top || ball.y+ball.r >= touchedBrick.Bottom) {
-				float k = fabs(ball.x - (touchedBrick.Left + touchedBrick.Right) / 2) / brickWidth;
-				ball.yDirection *= -1;
-				if (ball.xDirection >= 0) {
-					ball.xDirection = k;
-				}
-				else {
-					ball.xDirection = -k;
-				}
-				if (ball.y >= touchedBrick.Top) {
-					ball.y = touchedBrick.Top += ball.r;
-				}
-				else {
-					ball.y = touchedBrick.Bottom - ball.r;
-				}
-			}
-			else if (ball.x+ball.r<=touchedBrick.Left || ball.x-ball.r>=touchedBrick.Right) {
-				float k = fabs(ball.x - (touchedBrick.Top + touchedBrick.Bottom) / 2) / brickHeigth;
-				ball.xDirection *= -1;
-				if (ball.yDirection >= 0) {
-					ball.yDirection = k;
-				}
-				else {
-					ball.yDirection = -k;
-				}
-				if (ball.x <= touchedBrick.Left) {
-					ball.x = touchedBrick.Left - ball.r;
-				}
-				else {
-					ball.x = touchedBrick.Right + ball.r;
-				}
-			}
-		}
-		else {
-			ball.y += ball.yDirection*ball.CurrentSpeed;
-		}
+		// hàm nhận vào vị trí tiếp theo của banh và xét nó với từng viên gạch và trả ra viên gạch bị chạm (nếu có) 
+		RACKET touchedBrick = brick.isCollide(ball);
 	}
-	ball.x += ball.xDirection*ball.CurrentSpeed;//Thì hoàng độ x của quả bóng sẽ là hướng di chuyển nhân với tốc độ của nó
+	ball.x += ball.xDirection*ball.CurrentSpeed;
+	ball.y += ball.yDirection*ball.CurrentSpeed;
+}
+
+
+
+
+
+
+
+
+void SCREEN::SetBallValueForBrickGame()
+{
+	ball.x = Width / 2;
+	ball.y = racketForBrickGame.Top + 50;
+	ball.yDirection = 1;
+	ball.xDirection = (float)(rand() % 9 + 1) / 10;
 }
 void SCREEN::UpdateLeftRacket()//Hàm cập nhật thông tin của vợt bên trái (vợt di chuyển lên hay xuống)
 {
@@ -544,7 +510,7 @@ void SCREEN::UpdateScreen()//Hàm cập nhật toàn bộ thông tin của các 
 
 		ball.x = Width / 2;		//Các thông số của bóng
 		ball.y = TopBar / 2;	//
-		ball.r = 12;			//
+		ball.r = 5;			//
 		ball.FirstSpeed = 0;	//
 		ball.CurrentSpeed = 0;	//
 		//
@@ -576,12 +542,65 @@ void SCREEN::UpdateScreen()//Hàm cập nhật toàn bộ thông tin của các 
 			if (SelectionArrow == 320)//Nếu mũi tên ở bên trái, tức là chọn PLAY AGAIN 
 			{
 				SetUpDefaultStartValue();//thì ta đặt lại các thông số như ban đầu và vào stage=0, hiển thị Menu chọn và chơi lại
+				
+			}
+			else if (SelectionArrow == 815)//Nếu mũi tên ở bên phải, tức là chọn QUIT GAME, thì gán stage =4 và thoát game
+				stage = 4;
+		}
+		break;
+	case 6:
+		//Lúc này ta cũng in ra 2 ô lựa chọn là "PLAY AGAIN" và "QUIT GAME"
+		if (GetAsyncKeyState(VK_LEFT))//Nếu chọn ô bên trái
+		{
+			SelectionArrow = 320;//Di chuyển tọa độ mũi tên sang trái
+		}
+		else if (GetAsyncKeyState(VK_RIGHT))//Nếu chọn ô bên phải
+		{
+			SelectionArrow = 815;//Di chuyển mũi tên sang phải
+		}
+		else if (GetAsyncKeyState(VK_ENTER))//Nếu nhấn ENTER, tức là xác nhận đã chọn xong
+		{
+			Sleep(100);//Tạm ngưng việc tương tác với bàn phím trong 100 miliseconds
+						//Nếu ta không có hàm tạm ngưng này thì khi ta ấn ENTER, sẽ bị đè phím và chương trình tự động vào lại chế độ 1 người chơi nếu ta chọn PLAY AGAIN
+			if (SelectionArrow == 320)//Nếu mũi tên ở bên trái, tức là chọn PLAY AGAIN 
+			{
+				SetUpDefaultStartValue();//thì ta đặt lại các thông số như ban đầu và vào stage=0, hiển thị Menu chọn và chơi lại
+				onBrickGame = false;
+				brickGame = false;
 			}
 			else if (SelectionArrow == 815)//Nếu mũi tên ở bên phải, tức là chọn QUIT GAME, thì gán stage =4 và thoát game
 				stage = 4;
 		}
 		break;
 	}
+}
+
+void SCREEN::DisplayLostScreen() {
+	class Rectangle b;
+	//Ta thực hiện các thao tác tương tự ở phần case 0 để in ra 2 ô PLAY AGAIN và QUIT GAME
+	glColor3f(1.0, 0.0, 1.0);
+	b.Update(220, 420, TopBar - 250, TopBar - 300);
+	b.Draw();
+	b.Update(715, 915, TopBar - 250, TopBar - 300);
+	b.Draw();
+	glColor3f(1.0, 0.5, 0.5);
+	b.Update(225, 415, TopBar - 245, TopBar - 305);
+	b.Draw();
+	b.Update(720, 910, TopBar - 245, TopBar - 305);
+	b.Draw();
+	glColor3f(0.4, 0.3, 0.9);//Đặt màu vẽ là màu tím
+	PrintText(500, TopBar - 200, "YOU LOST!!!");
+	PrintText(250, TopBar - 280, "PLAY AGAIN");
+	PrintText(750, TopBar - 280, "QUIT GAME");
+	//
+
+	//Tương tự như đoạn code ở trong phần case 0 để hiển thị mũi tên chọn chế độ SelectionArrow
+	glColor3f(1.0, 0.2, 0.2);
+	glBegin(GL_TRIANGLES);
+	glVertex2f(SelectionArrow, TopBar - 310);
+	glVertex2f(SelectionArrow + 30, TopBar - 350);
+	glVertex2f(SelectionArrow - 30, TopBar - 350);
+	glEnd();
 }
 void SCREEN::SetUpDefaultStartValue()//Hàm khởi tạo các giá trị ban đầu
 {
@@ -594,9 +613,9 @@ void SCREEN::SetUpDefaultStartValue()//Hàm khởi tạo các giá trị ban đ�
 	//
 	ball.x = Width / 2;
 	ball.y = TopBar / 2;
-	ball.r = 12;
-	ball.FirstSpeed = 0.5;
-	ball.CurrentSpeed = 1;
+	ball.r = 5;
+	ball.FirstSpeed = 0.2;
+	ball.CurrentSpeed = 0.4;
 	ball.IncreaseSpeed = 0.1;//Thông số tốc độ gia tăng của bóng sau mỗi lần chạm vợt là 0.1 tức là 10% theo như đề
 							//Các thông số còn lại là mặc định do người lập trình tự điều chỉnh để phù hợp với kích thước giao diện
 	ball.xDirection = 1;
@@ -606,7 +625,7 @@ void SCREEN::SetUpDefaultStartValue()//Hàm khởi tạo các giá trị ban đ�
 	//
 	RightRacket.setDefaultValue(1070, 1100, 400, 250, 0.5, 1, 0);
 	//
-	racketForBrickGame.setDefaultValue(Width / 2 - 75, Width / 2 + 75, 75, 45, 0.5, 2, 0);
+	racketForBrickGame.setDefaultValue(Width / 2 - 75, Width / 2 + 75, 55, 45, 0.5, 2, 0);
 	//
 	brick.Init();
 }

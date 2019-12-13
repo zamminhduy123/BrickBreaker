@@ -13,6 +13,15 @@ protected:
 	float r;//Bán kính
 public:
 	void Draw();//Hàm vẽ hình tròn
+	float getX() {
+		return x;
+	}
+	float getY() {
+		return y;
+	}
+	float getR() {
+		return r;
+	}
 	Circle();
 	~Circle();
 };

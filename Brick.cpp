@@ -42,11 +42,29 @@ void Brick::DeleteABrick(int i, int j) {
 	glColor3f(1.0, 1.0, 1.0); // dat lai mau trang
 }
 
-RACKET Brick::isCollide(int x, int y) {
+void Brick::setBrickColor(int order)
+{
+	switch (order) {
+		case 1:
+			glColor3f(1.0, 0.0, 0.0);
+			break;
+		case 2:
+			glColor3f(0.0, 1.0, 0.0);
+			break;
+		case 3:
+			glColor3f(0.0, 0.0, 1.0);
+			break;
+	}
+
+}
+
+RACKET Brick::isCollide(BALL &ball) {
+	RACKET None;
+	None.setTop(-1);
 	for (int i = 0; i < maxBrick / 2; i++) {
 		for (int j = 0; j < maxBrick; j++) {
 			if (isOnBrick[i][j]) {
-				if (x > brick[i][j].getLeft() && x < brick[i][j].getRight() && y > brick[i][j].getBottom() && y < brick[i][j].getTop()) {
+				if (brick[i][j].intersects(ball)) {
 					DeleteABrick(i, j);
 					isOnBrick[i][j] = false;
 					return brick[i][j];
@@ -54,7 +72,20 @@ RACKET Brick::isCollide(int x, int y) {
 			}
 		}
 	}
-	return {};
+	return None;
+}
+
+void Brick::spawnItem()
+{
+	int i = rand() % (maxBrick / 2);
+	int j = rand() % (maxBrick);
+	if (!isItem[i][j]) {
+		int randItem = rand() % 3 + 1;
+		isItem[i][j] = true;
+		setBrickColor(randItem);
+		brick[i][j].Draw();
+		glColor3f(1.0,1.0,1.0)
+	}
 }
 
 Brick::Brick()

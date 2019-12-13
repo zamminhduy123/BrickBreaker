@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Rectangle.h"
+#include "BALL.h"
 
 class RACKET:public Rectangle//Khai báo lớp RACKET là con (kế thừa) lớp Rectangle
 {
@@ -10,6 +11,10 @@ protected:
 public:
 	friend class SCREEN;//Khai báo lớp SCREEN là friend của lớp RACKET
 	void setDefaultValue(int l, int r, int t, int b, float sp, int st, int sc);
+	void setTop(float new_top) {
+		Top = new_top;
+	}
+	bool intersects(BALL &ball);
 	RACKET();
 	~RACKET();
 };
