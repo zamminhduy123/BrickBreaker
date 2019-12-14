@@ -1,9 +1,10 @@
 ﻿#include "pch.h"
 #include "SCREEN.h"
 
-#define lBrickRacket 
 bool brickGame = false;
 bool onBrickGame = false;
+int dataTime = 0;
+
 
 int SCREEN::getterWidth()//Hàm lấy chiều rộng của cửa sổ trò chơi, trả về Width
 {
@@ -54,7 +55,7 @@ void SCREEN::DisplayBrickGameScreen(class Rectangle &b) {
 	racketForBrickGame.Draw();				// Hien thi thanh choi cho game
 	glColor3f(1.0, 1.0, 1.0);				//Đặt màu vẽ là màu trang
 	ball.Draw();							//Hiển thị trái bóng ra màn hình
-	
+	DisplayLifeInBrickGame();
 }
 
 void SCREEN::DisplayWinner() {
@@ -201,8 +202,8 @@ void SCREEN::DisplayScreen()//Hàm vẽ màn hình ở tất cả các giai đo�
 
 		//Hiển thị ra các chuỗi kí tự trên màn hình ở tọa độ tương ứng
 		glColor3f(1.0, 1.0, 0.0);//Đặt màu vẽ là màu vàng
-		PrintText(250, Height / 2, "ONE PLAYER");
-		PrintText(740, Height / 2, "TWO PLAYER");
+		PrintText(228, Height / 2-5, "PONG 1 PLAYER");
+		PrintText(720, Height / 2-5, "BRICK BREAKER");
 		PrintText(480, 140, "CONTROL KEYS");
 		PrintText(540, 65, "Go Up");
 		PrintText(530, 25, "Go Down");
@@ -263,6 +264,16 @@ void SCREEN::DisplayScreen()//Hàm vẽ màn hình ở tất cả các giai đo�
 		}
 		brick.Draw();
 		DisplayBrickGameScreen(b);
+		dataTime++;
+		if (dataTime == 1500) {
+			dataTime = 0;
+			brick.spawnItem();
+		}
+		brick.reduceItemTime();
+		for (int i = 0; i < item.size(); i++) {
+			item[i].fall();
+		}
+		
 		break;
 	case 6:
 		DisplayLostScreen();
@@ -271,6 +282,17 @@ void SCREEN::DisplayScreen()//Hàm vẽ màn hình ở tất cả các giai đo�
 	//
 	glutSwapBuffers();	//Thực hiện thao tác hoán đổi 2 buffers
 	glutPostRedisplay();//Lặp lại thao vẽ trên cửa sổ đang mở
+}
+
+/*
+	Hàm hiển thị số mạng chơi trong game
+*/
+void SCREEN::DisplayLifeInBrickGame() {
+	glColor3f(1.0, 0.5, 0.5);
+	PrintText(Width/2-100, TopBar + 10, "YOUR LIVES: ");
+	string s = to_string(racketForBrickGame.Score);
+	PrintText(Width/2+50, TopBar + 10, s);
+	glColor3f(1.0, 1.0, 1.0);
 }
 
 void SCREEN::ResizeScreen()//Hàm thay đổi lại các thông tin của màn hình sau mỗi lần hiển thị
@@ -350,9 +372,51 @@ void SCREEN::UpdateBall()//Hàm cập nhật thông tin của quả bóng (tọa
 	ball.y += ball.yDirection*ball.CurrentSpeed;//Tương tự với hoành độ, tung độ của quả bóng cũng như vậy
 }
 
+void SCREEN::UpdateRacketItem(int color) {
+	int w = racketForBrickGame.getRight() - racketForBrickGame.getLeft();
+	switch (color) {
+	case 1:
+		// làm thanh ngắn lại
+		racketForBrickGame.setLeft(racketForBrickGame.getLeft() + w * extraWidth); 
+		racketForBrickGame.setRight(racketForBrickGame.getRight() - w * extraWidth);
+		break;
+	case 2:
+		// làm thanh dài ra
+		racketForBrickGame.setLeft(racketForBrickGame.getLeft() - w * extraWidth);
+		racketForBrickGame.setRight(racketForBrickGame.getRight() + w * extraWidth);
+		break;
+	case 3:
+		// tăng mạng (dùng score để không phải tạo thêm biến)
+		racketForBrickGame.Score++;
+		break;
+	}
+}
+
+void SCREEN::UpdateItem(ITEM new_item) {
+	if (new_item.getStatus() != 0) {
+		item.push_back(new_item);
+	}
+	for (int i = 0; i < item.size(); i++) {
+		if (item[i].isRacketCollide(racketForBrickGame)) {
+			UpdateRacketItem(item[i].getStatus());
+			item[i].deleteItem();
+			item.erase(item.begin() + i);
+		}
+	}
+}
+
 void SCREEN::UpdateBallForBrickGame() {
+	// TH không hứng được banh
 	if (ball.y <= 0) {
-		stage = 6;
+		// nếu ng chơi ăn được cục tăng mạng
+		if (racketForBrickGame.Score > 0) {
+			racketForBrickGame.Score--;
+			SetBallValueForBrickGame();
+		}
+		// hết mạng
+		else if (racketForBrickGame.Score == 0) {
+			stage = 6;
+		}
 		return;
 	}
 	// TH ra chạm 2 biên trái phải
@@ -378,18 +442,12 @@ void SCREEN::UpdateBallForBrickGame() {
 	}
 	else {
 		// hàm nhận vào vị trí tiếp theo của banh và xét nó với từng viên gạch và trả ra viên gạch bị chạm (nếu có) 
-		RACKET touchedBrick = brick.isCollide(ball);
+		ITEM newItem = brick.isCollide(ball);
+		UpdateItem(newItem);
 	}
 	ball.x += ball.xDirection*ball.CurrentSpeed;
 	ball.y += ball.yDirection*ball.CurrentSpeed;
 }
-
-
-
-
-
-
-
 
 void SCREEN::SetBallValueForBrickGame()
 {
@@ -503,7 +561,6 @@ void SCREEN::UpdateScreen()//Hàm cập nhật toàn bộ thông tin của các 
 		break;*/
 		UpdateBallForBrickGame();
 		UpdateBrickGameRacket();
-		
 		break;
 	case 3://Giai đoạn sau khi chơi xong và đã xác định được người thắng
 		//Ta thiết lập các thông số của 3 đối tượng: bóng, vợt trái, vợt phải lại giống ban đầu, và không di chuyển chúng nữa
@@ -621,11 +678,11 @@ void SCREEN::SetUpDefaultStartValue()//Hàm khởi tạo các giá trị ban đ�
 	ball.xDirection = 1;
 	ball.yDirection = 0;
 	//
-	LeftRacket.setDefaultValue(50, 80, 400, 250, 0.5, 1, 0);
+	LeftRacket.setValue(50, 80, 400, 250, 0.5, 1, 0);
 	//
-	RightRacket.setDefaultValue(1070, 1100, 400, 250, 0.5, 1, 0);
+	RightRacket.setValue(1070, 1100, 400, 250, 0.5, 1, 0);
 	//
-	racketForBrickGame.setDefaultValue(Width / 2 - 75, Width / 2 + 75, 55, 45, 0.5, 2, 0);
+	racketForBrickGame.setValue(Width / 2 - 75, Width / 2 + 75, 55, 45, 0.5, 2, 0);
 	//
 	brick.Init();
 }

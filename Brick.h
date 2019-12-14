@@ -1,6 +1,6 @@
-#pragma once
-#include "RACKET.h"
+﻿#pragma once
 #include "BALL.h"
+#include "ITEM.h"
 #include <iostream>
 #include <vector>
 #include <time.h>
@@ -19,12 +19,17 @@ class Brick
 private:
 	RACKET brick[maxBrick/2][maxBrick]; //mang chua cac vien gach
 	bool isOnBrick[maxBrick / 2][maxBrick]; // mang xet xem vien gach co duoc xuat hien hay khong
+	ITEM isItem[maxBrick / 2][maxBrick]; // mang xet xem vien gach co chua vat pham khong
+	int itemTime[maxBrick / 2][maxBrick]; // mảng giữ thời gian của Item
 public:
 	void Init(); // khoi tao cac vien gach
 	void InitRandomMatch(); // khoi tao cac vien gach ngau nhien
 	void Draw(); // ve cac vien gach
 	void DeleteABrick(int i,int j); // xoa 1 vien gach
-	RACKET isCollide(BALL &ball);
+	void setBrickColor(int);   // đổi màu gạch
+	ITEM isCollide(BALL &ball);	
+	void spawnItem();			// xuất hiện ngẫu nhiên vật phẩm
+	void reduceItemTime();
 	Brick();
 	~Brick();
 };

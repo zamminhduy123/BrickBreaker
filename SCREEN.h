@@ -4,13 +4,16 @@
 #include <string>
 #include "BALL.h"
 #include "Brick.h"
-#include "RACKET.h"
 
 #define VK_S 83		//Định nghĩa mã của phím S
 #define VK_W 87		//Định nghĩa mã của phím W
 #define VK_ENTER 13	//Định nghĩa mã của phím ENTER
 //#define VK_RIGHT 77
 //#define VK_LEFT 75
+
+#define  extraWidth 0.1
+
+
 
 using namespace std;
 
@@ -35,6 +38,7 @@ private:
 							//4: trò chơi kết thúc, hiển thị màn hình kết thúc và thoát trò chơi
 	float SelectionArrow;	//Tọa độ đỉnh trên cùng của mũi tên chọn chức năng (ở đây sẽ có 1 mũi tên hiển thị để chọn chức năng)
 	int WinScore;			//Số điểm người chơi cần đạt đến để thắng trò chơi, ở đây đặt mặc định là 5
+	vector <ITEM> item;
 public:
 	int getterWidth();		//Hàm lấy thông tin chiều rộng
 	int getterHeight();		//Hàm lấy thông tin chiều cao
@@ -51,10 +55,14 @@ public:
 	void DisplayPlayScreen(class Rectangle &b);		//Hàm vẽ màn hình chơi cho giai đoạn 1 2 và đầu 3
 	void DisplayWinner();
 	void DisplayBrickGameScreen(class Rectangle &b);
+	
 	void UpdateBrickGameRacket();
+	void UpdateRacketItem(int);
 	void UpdateBallForBrickGame();
+	void UpdateItem(ITEM new_item);
 	void SetBallValueForBrickGame();
 	void DisplayLostScreen();
+	void DisplayLifeInBrickGame();
 	SCREEN();
 	~SCREEN();
 };

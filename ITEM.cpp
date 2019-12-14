@@ -1,20 +1,54 @@
 #include "pch.h"
 #include "ITEM.h"
 
+
+
 void ITEM::generate(RACKET brick,int itemOrder) {
 	Top = brick.getBottom();
 	Bottom = Top - 30;
 	Left = (brick.getRight() + brick.getLeft()) / 2;
 	Right = Left + 30;
-	fallingSpeed = (rand() % 10 + 1) / 10;
+	fallingSpeed = (float)(rand() % 10 + 1) / 10;
 	status = itemOrder;
+}
+
+bool ITEM::isRacketCollide(RACKET racket) {
+	if (Left >= racket.getLeft() && Right <= racket.getRight()) {
+		if (Bottom <= racket.getTop() && Bottom >= racket.getBottom()) {
+			return true;
+		}
+		else if (Top <= racket.getTop() && Top >= racket.getBottom()) {
+			return true;
+		}
+		else if (Top > racket.getTop() && Bottom < racket.getBottom()) {
+			return true;
+		}
+	}
+	else if ((Left < racket.getLeft() && Right > racket.getLeft()) || (Left<racket.getRight() && Right > racket.getRight())) {
+		if (Bottom <= racket.getTop() && Bottom >= racket.getBottom()) {
+			return true;
+		}
+		else if (Top <= racket.getTop() && Top >= racket.getBottom()) {
+			return true;
+		}
+		else if (Top > racket.getTop() && Bottom < racket.getBottom()) {
+			return true;
+		}
+	}
+	return false;
+}
+
+void ITEM::deleteItem() {
+	glColor3f(0.0, 0.0, 0.0);
+	Draw();
 }
 
 void ITEM::fall() {
 	glColor3f(0.0, 0.0, 0.0);
 	Draw();
-	Top -= Top * fallingSpeed;
-	Bottom -= Bottom * fallingSpeed;
+	//curSpeed += curSpeed * fallingSpeed;
+	Top -= fallingSpeed;
+	Bottom -= fallingSpeed;
 	switch(status) {
 	case 1:
 		glColor3f(1.0, 0.0, 0.0);
@@ -31,6 +65,7 @@ void ITEM::fall() {
 
 ITEM::ITEM()
 {
+	status = 0;
 }
 
 

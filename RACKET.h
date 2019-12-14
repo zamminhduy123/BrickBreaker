@@ -10,9 +10,15 @@ protected:
 	int Score;//Điểm của người chơi sử dụng vợt
 public:
 	friend class SCREEN;//Khai báo lớp SCREEN là friend của lớp RACKET
-	void setDefaultValue(int l, int r, int t, int b, float sp, int st, int sc);
+	void setValue(int l, int r, int t, int b, float sp, int st, int sc);
 	void setTop(float new_top) {
 		Top = new_top;
+	}
+	void setLeft(float new_l) {
+		Left = new_l;
+	}
+	void setRight(float new_r) {
+		Right = new_r;
 	}
 	bool intersects(BALL &ball);
 	RACKET();

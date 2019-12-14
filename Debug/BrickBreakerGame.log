@@ -1,2 +1,4 @@
 ﻿  SCREEN.cpp
+d:\coder\oop\brick breaker\18120161_18120179-master\brickbreakergame\brickbreakergame\screen.cpp(273): warning C4018: '<': signed/unsigned mismatch
+d:\coder\oop\brick breaker\18120161_18120179-master\brickbreakergame\brickbreakergame\screen.cpp(399): warning C4018: '<': signed/unsigned mismatch
   BrickBreakerGame.vcxproj -> D:\Coder\OOP\Brick breaker\18120161_18120179-master\BrickBreakerGame\Debug\BrickBreakerGame.exe
