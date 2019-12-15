@@ -13,14 +13,15 @@ using namespace std;
 #define xStartPoint 5
 #define yStartPoint 375
 #define space 25
+#define maxYBrick 6
 
 class Brick
 {
 private:
-	RACKET brick[maxBrick/2][maxBrick]; //mang chua cac vien gach
-	bool isOnBrick[maxBrick / 2][maxBrick]; // mang xet xem vien gach co duoc xuat hien hay khong
-	ITEM isItem[maxBrick / 2][maxBrick]; // mang xet xem vien gach co chua vat pham khong
-	int itemTime[maxBrick / 2][maxBrick]; // mảng giữ thời gian của Item
+	RACKET brick[maxYBrick][maxBrick]; //mang chua cac vien gach
+	bool isOnBrick[maxYBrick][maxBrick]; // mang xet xem vien gach co duoc xuat hien hay khong
+	ITEM isItem[maxYBrick][maxBrick]; // mang xet xem vien gach co chua vat pham khong
+	int itemTime[maxYBrick][maxBrick]; // mảng giữ thời gian của Item
 public:
 	void Init(); // khoi tao cac vien gach
 	void InitRandomMatch(); // khoi tao cac vien gach ngau nhien

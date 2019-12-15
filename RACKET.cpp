@@ -53,7 +53,7 @@ bool RACKET::intersects(BALL &ball) {
 	int width = Right - Left, heigth = Top - Bottom;
 	//TH thanh dung banh
 	if (Speed > 0) {
-		if (ball.getY() > Bottom && ball.getY() < Top) {
+		if (ball.getY() < Bottom && ball.getY()+ball.getR() > Bottom) {
 			// thanh di chuyển qua phải và đụng banh
 			if ((Right + Speed > ball.getX() - ball.getR() && ball.getX() > Right)) {
 				float k = 0.05;
@@ -64,7 +64,7 @@ bool RACKET::intersects(BALL &ball) {
 				else {
 					ball.setYDir(-k);
 				}
-				ball.setX(ball.getR() + Right + Speed+1);
+				ball.setX(ball.getR() + Right + Speed *2);
 				return true;
 			}// thanh di chuyển qua trái và đụng banh
 			else if (Left - Speed < ball.getX() + ball.getR() && ball.getX() < Left) {
@@ -76,7 +76,7 @@ bool RACKET::intersects(BALL &ball) {
 				else {
 					ball.setYDir(-k);
 				}
-				ball.setX(Left - Speed - ball.getR()-1);
+				ball.setX(Left - Speed*2 - ball.getR());
 				return true;
 			}
 		}

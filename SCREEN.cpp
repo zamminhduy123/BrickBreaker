@@ -516,6 +516,7 @@ void SCREEN::UpdateItem(ITEM new_item) {
 			case 2:
 			case 3:
 				player.score++;
+				break;
 			case 4:
 				player.score += 100;
 				break;
@@ -527,7 +528,7 @@ void SCREEN::UpdateItem(ITEM new_item) {
 }
 
 void SCREEN::UpdateAutoBrickGameRacket() {
-	if (ball.yDirection < 0) {
+	if (1){//ball.yDirection < 0) {
 		if (racketForBrickGame.getLeft() > ball.x) {
 			racketForBrickGame.Right -= racketForBrickGame.Speed;
 			racketForBrickGame.Left -= racketForBrickGame.Speed;
@@ -609,11 +610,14 @@ void SCREEN::UpdateBallForBrickGame() {
 			soundControl.brickCollisionSound(newItem.getStatus());
 		}
 		
-		UpdateItem(newItem);
+		UpdateItem(newItem); //update item list with newItem
+		
 		if (brick.isEmpty()) {
 			
 			brickGame = false;
 			onBrickGame = false;
+			ball.CurrentSpeed = ball.FirstSpeed;
+			racketForBrickGame.Speed = 0.5;
 			return;
 		}
 		
@@ -668,9 +672,9 @@ void SCREEN::UpdateBrickGameRacket() {
 		racketForBrickGame.Right += racketForBrickGame.Speed;
 		racketForBrickGame.Left += racketForBrickGame.Speed;
 		racketForBrickGame.Status = 2;
-		if (ball.getY() > racketForBrickGame.Bottom && ball.getY() < racketForBrickGame.Top) {
+		if ((ball.getY() - ball.r < racketForBrickGame.Top && ball.getY() > racketForBrickGame.Top) || (ball.getY() <racketForBrickGame.Top && ball.getY() >racketForBrickGame.Bottom)) {
 			if (racketForBrickGame.Right > ball.x - ball.r && ball.x > racketForBrickGame.Right) {
-				ball.x = racketForBrickGame.Right + ball.r;
+				ball.x = racketForBrickGame.Right + ball.r - racketForBrickGame.Speed;
 				isBarTouch = true;
 			}
 		}
@@ -679,9 +683,9 @@ void SCREEN::UpdateBrickGameRacket() {
 		racketForBrickGame.Right -= racketForBrickGame.Speed;
 		racketForBrickGame.Left -= racketForBrickGame.Speed;
 		racketForBrickGame.Status = -2;
-		if (ball.getY() > racketForBrickGame.Bottom && ball.getY() < racketForBrickGame.Top) {
+		if ((ball.getY() - ball.r < racketForBrickGame.Top && ball.getY() > racketForBrickGame.Top) || (ball.getY() < racketForBrickGame.Top && ball.getY() > racketForBrickGame.Bottom)) {
 			if (racketForBrickGame.Left < ball.x + ball.r && ball.x < racketForBrickGame.Left) {
-				ball.x = racketForBrickGame.Left - ball.r;
+				ball.x = racketForBrickGame.Left - ball.r-racketForBrickGame.Speed;
 				isBarTouch = true;
 			}
 		}
@@ -729,8 +733,9 @@ void SCREEN::switchArrow(int keyGot) {
 		break;
 	case VK_ENTER:
 		if (stage == 7) {
-			if (SelectionArrow == 250)//Nếu mũi tên đang ở bên trái thì gán stage = 1, tức là vào chế độ tạo game mới
+			if (SelectionArrow == 250) {//Nếu mũi tên đang ở bên trái thì gán stage = 1, tức là vào chế độ tạo game mới
 				stage = 2;
+			}
 			else if (SelectionArrow == 570)//Nếu mũi tên đang ở bên phải thì gán stage = 2, tức là vào chế độ Load
 				stage = 8;
 			else if (SelectionArrow == 840){
@@ -762,9 +767,12 @@ void SCREEN::switchArrow(int keyGot) {
 					return;
 				}
 			}
-			playerList.push_back(player);
-			SavePlayerList();
-			stage = 6;
+			if (player.name != "")
+			{
+				playerList.push_back(player);
+				SavePlayerList();
+			}
+			stage = 6; 
 			player.score = 0;
 			isLoaded = false;
 		}
@@ -789,10 +797,14 @@ void SCREEN::switchArrow(int keyGot) {
 	
 		break;
 	case GLUT_KEY_F1:
-		Save();
-		SetStage(0);
+		if (stage == 10)
+		{
+			Save();
+			SetStage(0);
+		}
 		break;
 	case GLUT_KEY_F2:
+		if (stage == 10)
 		SetStage(2);
 		break;
 	default:
@@ -825,7 +837,7 @@ void normalKeyCatch(unsigned char key, int x, int y) {
 		exit(0);
 	}
 	else if (key == 'a' && PingPong.getterStage() == 2) {
-		autoPlayWanted = true;
+		autoPlayWanted = !autoPlayWanted;
 	}
 	else if (key >= 'a' && key <= 'z') {
 		string temp = PingPong.getPlayerName();
@@ -837,6 +849,10 @@ void normalKeyCatch(unsigned char key, int x, int y) {
 		if (temp.size() != 0) {
 			temp.resize(temp.size() - 1);
 			PingPong.setPlayerName(temp);
+		}
+		else
+		{
+			PingPong.setPlayerName("");
 		}
 	}
 }
@@ -1075,7 +1091,7 @@ void SCREEN::SetUpDefaultStartValue()//Hàm khởi tạo các giá trị ban đ�
 	ball.y = TopBar / 2;
 	ball.r = 5;
 	ball.FirstSpeed = 0.2;
-	ball.CurrentSpeed = 0.4;
+	ball.CurrentSpeed = 0.3;
 	ball.IncreaseSpeed = 0.1;//Thông số tốc độ gia tăng của bóng sau mỗi lần chạm vợt là 0.1 tức là 10% theo như đề
 							//Các thông số còn lại là mặc định do người lập trình tự điều chỉnh để phù hợp với kích thước giao diện
 	ball.xDirection = 1;

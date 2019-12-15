@@ -5,7 +5,7 @@ void Brick::Init() {
 
 	int x = xStartPoint, y = yStartPoint;
 	int jumpX, jumpY;
-	for (int i = 0; i < maxBrick/2; i++) {
+	for (int i = 0; i < maxYBrick; i++) {
 		x = xStartPoint;
 		jumpY = rand() % 20 + 6;
 		for (int j = 0; j < maxBrick; j++) {
@@ -28,7 +28,7 @@ void Brick::Init() {
 
 void Brick::printSaveGame() {
 	// In gạch
-	for (int i = 0; i < maxBrick / 2; i++) {
+	for (int i = 0; i < maxYBrick; i++) {
 		for (int j = 0; j < maxBrick; j++) {
 			cout << (int)isOnBrick[i][j] << " ";
 			brick[i][j].print();
@@ -36,7 +36,7 @@ void Brick::printSaveGame() {
 		}
 	}
 	// In trạng thái gạch
-	for (int i = 0; i < maxBrick / 2; i++) {
+	for (int i = 0; i < maxYBrick; i++) {
 		for (int j = 0; j < maxBrick; j++) {
 			cout << isItem[i][j].getStatus() << " ";
 		}
@@ -47,7 +47,7 @@ void Brick::printSaveGame() {
 void Brick::loadBrick() {
 	Init();
 	// load gạch
-	for (int i = 0; i < maxBrick / 2; i++) {
+	for (int i = 0; i < maxYBrick; i++) {
 		for (int j = 0; j < maxBrick; j++) {
 			cin >> isOnBrick[i][j];
 			brick[i][j].load();
@@ -55,7 +55,7 @@ void Brick::loadBrick() {
 	}
 	int tempStat;
 	// load trạng thái gạch
-	for (int i = 0; i < maxBrick / 2; i++) {
+	for (int i = 0; i < maxYBrick; i++) {
 		for (int j = 0; j < maxBrick; j++) {
 			cin >> tempStat;
 			isItem[i][j].setStatus(tempStat);
@@ -65,7 +65,7 @@ void Brick::loadBrick() {
 
 void Brick::InitRandomMatch() {
 	srand(time(NULL));
-	for (int i = 0; i < maxBrick / 2; i++) {
+	for (int i = 0; i < maxYBrick; i++) {
 		for (int j = 0; j < maxBrick; j++) {
 			if ((rand() % 2 + 1) % 2 == 0) {
 				isOnBrick[i][j] = true;
@@ -75,7 +75,7 @@ void Brick::InitRandomMatch() {
 }
 
 void Brick::Draw() {
-	for (int i = 0; i < maxBrick / 2; i++) {
+	for (int i = 0; i < maxYBrick; i++) {
 		for (int j = 0; j < maxBrick; j++) {
 			if (isOnBrick[i][j] == true) {
 				setBrickColor(isItem[i][j].getStatus());
@@ -93,7 +93,7 @@ void Brick::DeleteABrick(int i, int j) {
 }
 
 bool Brick::isEmpty() {
-	for (int i = 0; i < maxBrick / 2; i++) {
+	for (int i = 0; i < maxYBrick; i++) {
 		for (int j = 0; j < maxBrick; j++) {
 			if (isOnBrick[i][j] == true)
 				return false;
@@ -130,7 +130,7 @@ void Brick::setBrickColor(int order)
 */
 
 ITEM Brick::isCollide(BALL &ball) {
-	for (int i = 0; i < maxBrick / 2; i++) 
+	for (int i = 0; i < maxYBrick; i++) 
 	{
 		for (int j = 0; j < maxBrick; j++) 
 		{
@@ -152,7 +152,7 @@ ITEM Brick::isCollide(BALL &ball) {
 void Brick::spawnItem()
 {
 	// random gạch có vật phẩm
-	for (int k = 0; k < maxBrick/2; k++) {
+	for (int k = 0; k < maxYBrick; k++) {
 		for (int l = 0; l < maxBrick; l++) {
 			if (isOnBrick[k][l]) {
 				int r = rand() % 2 + 1;
@@ -171,7 +171,7 @@ void Brick::spawnItem()
 }
 
 void Brick::reduceItemTime() {
-	for (int i = 0; i < maxBrick / 2; i++) {
+	for (int i = 0; i < maxYBrick; i++) {
 		for (int j = 0; j < maxBrick; j++) {
 			if (itemTime[i][j] > 0) {
 				itemTime[i][j]--;

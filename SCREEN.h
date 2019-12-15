@@ -60,21 +60,21 @@ public:
 	void DisplayPlayScreen(class Rectangle &b);		//Hàm vẽ màn hình chơi cho giai đoạn 1 2 và đầu 3
 	void DisplayWinner();
 	//Bổ sung khi nhận đồ án
-	void DisplayBrickGameScreen(class Rectangle &b);
-	void UpdateBrickGameRacket();
-	void UpdateRacketItem(int);
-	void UpdateBallForBrickGame();
-	void UpdateItem(ITEM new_item);
-	void SetBallValueForBrickGame();
-	void UpdateAutoBrickGameRacket();
-	void DisplayLostScreen();
-	void DisplayLifeInBrickGame();
-	void Save();
-	void Load();
-	void SavePlayerList();
-	void LoadPlayerList();
-	void sortPlayerList();
-	void getUserName();
+	void DisplayBrickGameScreen(class Rectangle &b); // Hien thi man choi cua brick game
+	void UpdateBrickGameRacket();					//Cap nhat thanh choi cua brick game
+	void UpdateRacketItem(int);						//Cap nhat item cua thanh choi
+	void UpdateBallForBrickGame();					//Cap nhat banh cho brick game
+	void UpdateItem(ITEM new_item);					//Cap nhat mang ITEM
+	void SetBallValueForBrickGame();				// Khoi tao cac gia tri cho banh 
+	void UpdateAutoBrickGameRacket();				//Thanh choi tu dong
+	void DisplayLostScreen();						//Hien thi man hinh thua
+	void DisplayLifeInBrickGame();					//Hien thi mang song va diem
+	void Save();									//luu game
+	void Load();									//load game
+	void SavePlayerList();							//luu bang thanh tich
+	void LoadPlayerList();							//load bang thanh tich
+	void sortPlayerList();							//sort mang nguoi choi
+	void getUserName();								//lay ten nguoi choi
 
 	void setPlayerName(string name) {
 		player.name = name;
@@ -82,11 +82,11 @@ public:
 	string getPlayerName() {
 		return player.name;
 	}
-	void switchArrow(int);
-	void DisplayBrickInterface();
-	void DisplayLeaderBoard(); 
-	void PauseInterface();
-	void SetStage(int new_stage) {
+	void switchArrow(int);							// thay doi con tro
+	void DisplayBrickInterface();					// giao dien trong brick game
+	void DisplayLeaderBoard();						// hien thi thanh tich
+	void PauseInterface();							// hien thi man hinh dung
+	void SetStage(int new_stage) {					
 		stage = new_stage;
 	}
 	SCREEN();

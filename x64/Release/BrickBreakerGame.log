@@ -1,0 +1,28 @@
+﻿  pch.cpp
+  BALL.cpp
+  Brick.cpp
+  BrickBreakerGame.cpp
+d:\coder\oop\brick breaker\18120161_18120179-master\brickbreakergame\brickbreakergame\brickbreakergame.cpp(48): warning C4326: return type of 'main' should be 'int' instead of 'void'
+  Circle.cpp
+  ITEM.cpp
+  PLAYER.cpp
+  RACKET.cpp
+  Rectangle.cpp
+  SCREEN.cpp
+  SoundEffect.cpp
+BrickBreakerGame.obj : error LNK2001: unresolved external symbol __imp___glutInitWithExit
+BrickBreakerGame.obj : error LNK2001: unresolved external symbol __imp___glutCreateWindowWithExit
+BrickBreakerGame.obj : error LNK2001: unresolved external symbol __imp_glutTimerFunc
+BrickBreakerGame.obj : error LNK2001: unresolved external symbol __imp_glutDestroyWindow
+BrickBreakerGame.obj : error LNK2001: unresolved external symbol __imp_glutInitWindowSize
+BrickBreakerGame.obj : error LNK2001: unresolved external symbol __imp_glutInitWindowPosition
+BrickBreakerGame.obj : error LNK2001: unresolved external symbol __imp_glutInitDisplayMode
+BrickBreakerGame.obj : error LNK2001: unresolved external symbol __imp_glutDisplayFunc
+BrickBreakerGame.obj : error LNK2001: unresolved external symbol __imp_glutReshapeFunc
+BrickBreakerGame.obj : error LNK2001: unresolved external symbol __imp_glutKeyboardFunc
+BrickBreakerGame.obj : error LNK2001: unresolved external symbol __imp_glutMainLoop
+SCREEN.obj : error LNK2001: unresolved external symbol __imp_glutBitmapCharacter
+SCREEN.obj : error LNK2001: unresolved external symbol __imp_glutSwapBuffers
+SCREEN.obj : error LNK2001: unresolved external symbol __imp_glutPostRedisplay
+SCREEN.obj : error LNK2001: unresolved external symbol __imp_glutSpecialFunc
+D:\Coder\OOP\Brick breaker\18120161_18120179-master\BrickBreakerGame\x64\Release\BrickBreakerGame.exe : fatal error LNK1120: 15 unresolved externals
