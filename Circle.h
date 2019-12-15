@@ -22,6 +22,12 @@ public:
 	float getR() {
 		return r;
 	}
+	void setX(float new_x) {
+		x = new_x;
+	}
+	void setY(float new_y) {
+		y = new_y;
+	}
 	Circle();
 	~Circle();
 };

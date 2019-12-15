@@ -88,7 +88,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
@@ -160,9 +160,12 @@
     <ClInclude Include="glxew.h" />
     <ClInclude Include="ITEM.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="PLAYER.h" />
     <ClInclude Include="RACKET.h" />
     <ClInclude Include="Rectangle.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="SCREEN.h" />
+    <ClInclude Include="SoundEffect.h" />
     <ClInclude Include="wglew.h" />
   </ItemGroup>
   <ItemGroup>
@@ -177,9 +180,14 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="PLAYER.cpp" />
     <ClCompile Include="RACKET.cpp" />
     <ClCompile Include="Rectangle.cpp" />
     <ClCompile Include="SCREEN.cpp" />
+    <ClCompile Include="SoundEffect.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="BrickBreakerGame.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

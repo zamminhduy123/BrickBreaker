@@ -12,6 +12,14 @@ void ITEM::generate(RACKET brick,int itemOrder) {
 	status = itemOrder;
 }
 
+void ITEM::print() {
+	if (Top > 0)
+	cout << Left << " " << Right << " " << Top << " " << Bottom << " " << fallingSpeed <<" " <<  status << endl;
+}
+void ITEM::load() {
+	cin >> Left >> Right >> Top >> Bottom >> fallingSpeed >> status;
+}
+
 bool ITEM::isRacketCollide(RACKET racket) {
 	if (Left >= racket.getLeft() && Right <= racket.getRight()) {
 		if (Bottom <= racket.getTop() && Bottom >= racket.getBottom()) {
@@ -59,12 +67,17 @@ void ITEM::fall() {
 	case 3:
 		glColor3f(0.0, 0.0, 1.0);
 		break;
+	case 4:
+		glColor3f(1.0, 1.0, 0.0);
+		break;
+
 	}
 	Draw();
 }
 
 ITEM::ITEM()
 {
+	curSpeed = -2;
 	status = 0;
 }
 

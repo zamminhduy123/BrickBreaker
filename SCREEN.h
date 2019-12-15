@@ -3,11 +3,13 @@
 #include <Windows.h>
 #include <string>
 #include "BALL.h"
+#include "PLAYER.h"
 #include "Brick.h"
-
+#include "SoundEffect.h"
 #define VK_S 83		//Định nghĩa mã của phím S
 #define VK_W 87		//Định nghĩa mã của phím W
 #define VK_ENTER 13	//Định nghĩa mã của phím ENTER
+#define VK_SPACEBAR 32
 //#define VK_RIGHT 77
 //#define VK_LEFT 75
 
@@ -39,6 +41,9 @@ private:
 	float SelectionArrow;	//Tọa độ đỉnh trên cùng của mũi tên chọn chức năng (ở đây sẽ có 1 mũi tên hiển thị để chọn chức năng)
 	int WinScore;			//Số điểm người chơi cần đạt đến để thắng trò chơi, ở đây đặt mặc định là 5
 	vector <ITEM> item;
+	PLAYER player;
+	vector <PLAYER> playerList;
+	SoundEffect soundControl;
 public:
 	int getterWidth();		//Hàm lấy thông tin chiều rộng
 	int getterHeight();		//Hàm lấy thông tin chiều cao
@@ -54,15 +59,36 @@ public:
 	void SetUpDefaultStartValue();					//Hàm khởi tạo thông tin ban đầu của tất cả các đối tượn
 	void DisplayPlayScreen(class Rectangle &b);		//Hàm vẽ màn hình chơi cho giai đoạn 1 2 và đầu 3
 	void DisplayWinner();
+	//Bổ sung khi nhận đồ án
 	void DisplayBrickGameScreen(class Rectangle &b);
-	
 	void UpdateBrickGameRacket();
 	void UpdateRacketItem(int);
 	void UpdateBallForBrickGame();
 	void UpdateItem(ITEM new_item);
 	void SetBallValueForBrickGame();
+	void UpdateAutoBrickGameRacket();
 	void DisplayLostScreen();
 	void DisplayLifeInBrickGame();
+	void Save();
+	void Load();
+	void SavePlayerList();
+	void LoadPlayerList();
+	void sortPlayerList();
+	void getUserName();
+
+	void setPlayerName(string name) {
+		player.name = name;
+	}
+	string getPlayerName() {
+		return player.name;
+	}
+	void switchArrow(int);
+	void DisplayBrickInterface();
+	void DisplayLeaderBoard(); 
+	void PauseInterface();
+	void SetStage(int new_stage) {
+		stage = new_stage;
+	}
 	SCREEN();
 	~SCREEN();
 };

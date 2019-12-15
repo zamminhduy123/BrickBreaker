@@ -4,15 +4,62 @@
 void Brick::Init() {
 
 	int x = xStartPoint, y = yStartPoint;
+	int jumpX, jumpY;
 	for (int i = 0; i < maxBrick/2; i++) {
 		x = xStartPoint;
+		jumpY = rand() % 20 + 6;
 		for (int j = 0; j < maxBrick; j++) {
+			jumpX = rand() % 30 + 5;
+			if (x + xJump > 1150) {
+				break;
+			}
 			brick[i][j].setValue(x, x + xJump, y + yJump, y, 0, 0, 0);
-			x += xJump + space;
+			x += xJump + jumpX;
 			isOnBrick[i][j] = false;
 			isItem[i][j].setStatus(0);
 		}
-		y += yJump + space;
+		y += yJump + jumpY;
+		if (y > 580)
+		{
+			return;
+		}
+	}
+}
+
+void Brick::printSaveGame() {
+	// In gạch
+	for (int i = 0; i < maxBrick / 2; i++) {
+		for (int j = 0; j < maxBrick; j++) {
+			cout << (int)isOnBrick[i][j] << " ";
+			brick[i][j].print();
+			cout << endl;
+		}
+	}
+	// In trạng thái gạch
+	for (int i = 0; i < maxBrick / 2; i++) {
+		for (int j = 0; j < maxBrick; j++) {
+			cout << isItem[i][j].getStatus() << " ";
+		}
+		cout << endl;
+	}
+}
+
+void Brick::loadBrick() {
+	Init();
+	// load gạch
+	for (int i = 0; i < maxBrick / 2; i++) {
+		for (int j = 0; j < maxBrick; j++) {
+			cin >> isOnBrick[i][j];
+			brick[i][j].load();
+		}
+	}
+	int tempStat;
+	// load trạng thái gạch
+	for (int i = 0; i < maxBrick / 2; i++) {
+		for (int j = 0; j < maxBrick; j++) {
+			cin >> tempStat;
+			isItem[i][j].setStatus(tempStat);
+		}
 	}
 }
 
@@ -45,6 +92,16 @@ void Brick::DeleteABrick(int i, int j) {
 	glColor3f(1.0, 1.0, 1.0); // dat lai mau trang
 }
 
+bool Brick::isEmpty() {
+	for (int i = 0; i < maxBrick / 2; i++) {
+		for (int j = 0; j < maxBrick; j++) {
+			if (isOnBrick[i][j] == true)
+				return false;
+		}
+	}
+	return true;
+}
+
 void Brick::setBrickColor(int order)
 {
 	switch (order) {
@@ -60,6 +117,10 @@ void Brick::setBrickColor(int order)
 		case 0:
 			glColor3f(1.0, 1.0, 1.0);
 			break;
+		case 4:
+			glColor3f(1.0, 1.0, 0.0);
+			break;
+
 	}
 
 }
@@ -79,6 +140,7 @@ ITEM Brick::isCollide(BALL &ball) {
 				{
 					DeleteABrick(i, j);
 					isOnBrick[i][j] = false;
+					isItem[i][j].setCurspeed(-1);
 					return isItem[i][j];
 				}
 			}
@@ -95,7 +157,7 @@ void Brick::spawnItem()
 			if (isOnBrick[k][l]) {
 				int r = rand() % 2 + 1;
 				if (r % 2 == 0) {
-					int randItem = rand() % 3 + 1; // random 1 trong 3 vật phẩm  
+					int randItem = rand() % 4 + 1; // random 1 trong 3 vật phẩm  
 					setBrickColor(randItem);   // đổi màu gạch theo vật phẩm
 					brick[k][l].Draw();
 					itemTime[k][l] = 3000;

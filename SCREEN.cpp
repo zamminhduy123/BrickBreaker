@@ -4,8 +4,32 @@
 bool brickGame = false;
 bool onBrickGame = false;
 int dataTime = 0;
+bool isEnterPressed = false;
+bool pause = false;
+bool isLoaded = false;
+bool isBarTouch = false;
+bool isThemeSongOn = false;
+bool autoPlayWanted = false;
 
+void SetNumLock(BOOL bState)
+{
+	BYTE keyState[256];
 
+	GetKeyboardState((LPBYTE)&keyState);
+	if ((bState && !(keyState[VK_NUMLOCK] & 1)) ||
+		(!bState && (keyState[VK_NUMLOCK] & 1)))
+	{
+		// giả lập người dùng ấn capslock
+		keybd_event(VK_NUMLOCK,
+			0x45,
+			KEYEVENTF_EXTENDEDKEY | 0,
+			0);
+		keybd_event(VK_NUMLOCK,
+			0x45,
+			KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP,
+			0);
+	}
+}
 int SCREEN::getterWidth()//Hàm lấy chiều rộng của cửa sổ trò chơi, trả về Width
 {
 	return Width;
@@ -68,6 +92,37 @@ void SCREEN::DisplayWinner() {
 	{
 		PrintText(850, TopBar + 15, "WINNER");
 	}
+}
+
+void SCREEN::DisplayBrickInterface() {
+	class Rectangle b;
+	glClearColor(0.4, 0.3, 0.9, 0.1);//Đặt màu nền màn hình là màu tím
+	glColor3f(0.7, 1.0, 0.1);
+	b.Update(150, 350, 360, 300);
+	b.Draw();
+	b.Update(450, 650, 360, 300);
+	b.Draw();
+	b.Update(750, 950, 360, 300);
+	b.Draw();
+	glColor3f(0.4, 0.3, 0.9);
+	b.Update(155, 345, 355, 305);
+	b.Draw();
+	b.Update(455, 645, 355, 305);
+	b.Draw();
+	b.Update(755, 945, 355, 305);
+	b.Draw();
+	//
+	glColor3f(1.0, 1.0, 0.0);//Đặt màu vẽ là màu vàng
+	PrintText(180, Height / 2 - 5, "NEW GAME");
+	PrintText(480, Height / 2 - 5, "LOAD GAME");
+	PrintText(760, Height / 2 - 5, "LEADER BOARD");
+	//Vẽ mũi tên SelectionArrow màu đỏ 
+	glColor3f(1.0, 0.2, 0.2);
+	glBegin(GL_TRIANGLES);
+	glVertex2f(SelectionArrow, 290);
+	glVertex2f(SelectionArrow + 30, 240);
+	glVertex2f(SelectionArrow - 30, 240);
+	glEnd();
 }
 
 void SCREEN::DisplayScreen()//Hàm vẽ màn hình ở tất cả các giai đoạn
@@ -209,6 +264,10 @@ void SCREEN::DisplayScreen()//Hàm vẽ màn hình ở tất cả các giai đo�
 		PrintText(530, 25, "Go Down");
 		PrintText(455, 70, "W");
 		PrintText(458, 30, "S");
+		if (!isThemeSongOn) {
+			soundControl.themeSong();
+			isThemeSongOn = true;
+		}
 		//
 		break;
 	case 1:case 5://2 Giai đoạn này là chế độ 1 và 2 người chơi thì các đối tượng cần hiển thị ra màn hình giống nhau hoàn toàn
@@ -245,6 +304,8 @@ void SCREEN::DisplayScreen()//Hàm vẽ màn hình ở tất cả các giai đo�
 		glVertex2f(SelectionArrow, 490);
 		glVertex2f(SelectionArrow + 30, 440);
 		glVertex2f(SelectionArrow - 30, 440);
+		LoadPlayerList();
+		
 		glEnd();
 		break;
 	case 4://Sau khi chơi xong và người chơi chọn QUIT GAME
@@ -273,10 +334,21 @@ void SCREEN::DisplayScreen()//Hàm vẽ màn hình ở tất cả các giai đo�
 		for (int i = 0; i < item.size(); i++) {
 			item[i].fall();
 		}
-		
 		break;
 	case 6:
 		DisplayLostScreen();
+		break;
+	case 7:
+		DisplayBrickInterface();
+		break;
+	case 10:
+		PauseInterface();
+		break;
+	case 11:
+		getUserName();
+		break;
+	case 9:
+		DisplayLeaderBoard();
 		break;
 	}
 	//
@@ -292,8 +364,12 @@ void SCREEN::DisplayLifeInBrickGame() {
 	PrintText(Width/2-100, TopBar + 10, "YOUR LIVES: ");
 	string s = to_string(racketForBrickGame.Score);
 	PrintText(Width/2+50, TopBar + 10, s);
+
+	PrintText(Width / 2 + 100, TopBar + 10, "SCORE: ");
+	PrintText(Width / 2 + 200, TopBar + 10, to_string(player.score));
 	glColor3f(1.0, 1.0, 1.0);
 }
+
 
 void SCREEN::ResizeScreen()//Hàm thay đổi lại các thông tin của màn hình sau mỗi lần hiển thị
 {
@@ -389,7 +465,41 @@ void SCREEN::UpdateRacketItem(int color) {
 		// tăng mạng (dùng score để không phải tạo thêm biến)
 		racketForBrickGame.Score++;
 		break;
+	case 4:
+		break;
 	}
+}
+
+void SCREEN::Save() {
+	freopen("database.txt", "wt", stdout);
+	cout << racketForBrickGame.Left <<" " <<  racketForBrickGame.Right << " " << racketForBrickGame.Top << " " << racketForBrickGame.Bottom << " " << racketForBrickGame.Score << " " << racketForBrickGame.Status << " " << racketForBrickGame.Speed <<  endl;
+	cout << ball.x << " " << ball.y << " " << ball.r << " " << ball.CurrentSpeed << " " << ball.IncreaseSpeed << " " << ball.xDirection << " " << ball.yDirection << endl;
+	brick.printSaveGame();
+	for (int i = 0; i < item.size(); i++) {
+		item[i].print();
+	}
+	cout.clear();
+	fclose(stdout);
+	SelectionArrow = 320;
+}
+
+void SCREEN::Load() {
+	freopen("database.txt", "rt", stdin);
+	cin >> racketForBrickGame.Left >> racketForBrickGame.Right >> racketForBrickGame.Top >> racketForBrickGame.Bottom >> racketForBrickGame.Score >> racketForBrickGame.Status >> racketForBrickGame.Speed;
+	cin >> ball.x >> ball.y >> ball.r >> ball.CurrentSpeed >> ball.IncreaseSpeed >> ball.xDirection >> ball.yDirection;
+	brick.loadBrick();
+	int i = 0;
+	item.resize(0);
+	ITEM new_item;
+	while (!cin.eof()) {
+		new_item.load();
+		item.push_back(new_item);
+	}
+	cin.clear();
+	fclose(stdin);
+	bool brickGame = true;
+	bool onBrickGame = true;
+	stage = 2;
 }
 
 void SCREEN::UpdateItem(ITEM new_item) {
@@ -399,8 +509,37 @@ void SCREEN::UpdateItem(ITEM new_item) {
 	for (int i = 0; i < item.size(); i++) {
 		if (item[i].isRacketCollide(racketForBrickGame)) {
 			UpdateRacketItem(item[i].getStatus());
+			switch (item[i].getStatus()) {
+			case 1:
+				player.score--;
+				break;
+			case 2:
+			case 3:
+				player.score++;
+			case 4:
+				player.score += 100;
+				break;
+			}
 			item[i].deleteItem();
 			item.erase(item.begin() + i);
+		}
+	}
+}
+
+void SCREEN::UpdateAutoBrickGameRacket() {
+	if (ball.yDirection < 0) {
+		if (racketForBrickGame.getLeft() > ball.x) {
+			racketForBrickGame.Right -= racketForBrickGame.Speed;
+			racketForBrickGame.Left -= racketForBrickGame.Speed;
+			racketForBrickGame.Status = -2;
+		}
+		else if (racketForBrickGame.getRight() < ball.x) {
+			racketForBrickGame.Right += racketForBrickGame.Speed;
+			racketForBrickGame.Left += racketForBrickGame.Speed;
+			racketForBrickGame.Status = 2;
+		}
+		else {
+			return;
 		}
 	}
 }
@@ -411,12 +550,24 @@ void SCREEN::UpdateBallForBrickGame() {
 		// nếu ng chơi ăn được cục tăng mạng
 		if (racketForBrickGame.Score > 0) {
 			racketForBrickGame.Score--;
+			// sau khi chết nếu còn mạng thì banh giảm 1 nửa speed
+			if (ball.CurrentSpeed / 2 > ball.FirstSpeed) {
+				ball.CurrentSpeed = ball.CurrentSpeed / 2;
+			}
+			
+
 			SetBallValueForBrickGame();
 		}
 		// hết mạng
 		else if (racketForBrickGame.Score == 0) {
-			stage = 6;
+			SelectionArrow = 325;
+			stage = 11;
+			for (int i = 0; i < item.size(); i++) {
+				item[i].deleteItem();
+			}
+			item.resize(0);
 		}
+		autoPlayWanted = false;
 		return;
 	}
 	// TH ra chạm 2 biên trái phải
@@ -430,20 +581,42 @@ void SCREEN::UpdateBallForBrickGame() {
 	// TH chạm thanh chơi
 	//ball.x - ball.r > racketForBrickGame.Left && ball.x + ball.r < racketForBrickGame.Right && ball.y - ball.yDirection*ball.CurrentSpeed <= racketForBrickGame.Top
 	else if (racketForBrickGame.intersects(ball)) {
-		float k = fabs(ball.x - (racketForBrickGame.Left + racketForBrickGame.Right) / 2) / (racketForBrickGame.Right - racketForBrickGame.Left);
-		if (racketForBrickGame.Status == 2) {
-			ball.setXDir(k);
+		if (!isBarTouch) {
+			soundControl.brickCollisionSound(5);
+			if (ball.x < racketForBrickGame.Right && ball.x >racketForBrickGame.Left) {
+				float k = fabs(ball.x - (racketForBrickGame.Left + racketForBrickGame.Right) / 2) / (racketForBrickGame.Right - racketForBrickGame.Left);
+				if (racketForBrickGame.Status == 2) {
+					ball.setXDir(k);
+				}
+				else {
+					ball.setXDir(-k);
+				}
+			}
+			ball.CurrentSpeed += ball.CurrentSpeed*ball.IncreaseSpeed;
+			if (racketForBrickGame.Speed < 2) {
+				racketForBrickGame.Speed += racketForBrickGame.Speed * ball.IncreaseSpeed;
+			}
 		}
 		else {
-			ball.setXDir(-k);
+			isBarTouch = false;
 		}
-		ball.CurrentSpeed += ball.CurrentSpeed*ball.IncreaseSpeed;
-		racketForBrickGame.Speed += racketForBrickGame.Speed * ball.IncreaseSpeed / 2;
 	}
 	else {
 		// hàm nhận vào vị trí tiếp theo của banh và xét nó với từng viên gạch và trả ra viên gạch bị chạm (nếu có) 
 		ITEM newItem = brick.isCollide(ball);
+		if (newItem.getCurSpeed() == -1) {
+			player.score++;
+			soundControl.brickCollisionSound(newItem.getStatus());
+		}
+		
 		UpdateItem(newItem);
+		if (brick.isEmpty()) {
+			
+			brickGame = false;
+			onBrickGame = false;
+			return;
+		}
+		
 	}
 	ball.x += ball.xDirection*ball.CurrentSpeed;
 	ball.y += ball.yDirection*ball.CurrentSpeed;
@@ -456,6 +629,7 @@ void SCREEN::SetBallValueForBrickGame()
 	ball.yDirection = 1;
 	ball.xDirection = (float)(rand() % 9 + 1) / 10;
 }
+
 void SCREEN::UpdateLeftRacket()//Hàm cập nhật thông tin của vợt bên trái (vợt di chuyển lên hay xuống)
 {
 	//Hàm GetAsyncKeyState(VK) sẽ trả về true nếu ta nhấn phím VK, nếu không thì trả về false (với VK là mã phím đã được định nghĩa trước)
@@ -472,6 +646,7 @@ void SCREEN::UpdateLeftRacket()//Hàm cập nhật thông tin của vợt bên t
 		LeftRacket.Status = -1;					//Status của vợt được cập nhật là = -1, tương ứng với đi xuống
 	}
 }
+
 void SCREEN::UpdateRightRacket()//Hàm cập nhật thông tin vợt phải
 {//Hoàn toàn tương tự như vợt trái, chỉ khác ở chỗ phím di chuyển là mũi tên lên và mũi tên xuống
 	if (GetAsyncKeyState(VK_UP) && RightRacket.Top < TopBar)
@@ -493,12 +668,27 @@ void SCREEN::UpdateBrickGameRacket() {
 		racketForBrickGame.Right += racketForBrickGame.Speed;
 		racketForBrickGame.Left += racketForBrickGame.Speed;
 		racketForBrickGame.Status = 2;
-
+		if (ball.getY() > racketForBrickGame.Bottom && ball.getY() < racketForBrickGame.Top) {
+			if (racketForBrickGame.Right > ball.x - ball.r && ball.x > racketForBrickGame.Right) {
+				ball.x = racketForBrickGame.Right + ball.r;
+				isBarTouch = true;
+			}
+		}
 	}
 	else if (GetAsyncKeyState(VK_LEFT) && racketForBrickGame.Left > 0) {
 		racketForBrickGame.Right -= racketForBrickGame.Speed;
 		racketForBrickGame.Left -= racketForBrickGame.Speed;
 		racketForBrickGame.Status = -2;
+		if (ball.getY() > racketForBrickGame.Bottom && ball.getY() < racketForBrickGame.Top) {
+			if (racketForBrickGame.Left < ball.x + ball.r && ball.x < racketForBrickGame.Left) {
+				ball.x = racketForBrickGame.Left - ball.r;
+				isBarTouch = true;
+			}
+		}
+	}
+	else if (autoPlayWanted) {
+		UpdateAutoBrickGameRacket();
+		return;
 	}
 }
 
@@ -524,6 +714,177 @@ void SCREEN::UpdateAutoRacket()//Hàm cập nhật vợt di chuyển tự độn
 	//Nếu tốc độ bóng đủ nhanh, góc nảy của bóng đủ lớn, thì vợt sẽ không di chuyển để đón kịp
 }
 
+void SCREEN::switchArrow(int keyGot) {
+	switch (keyGot) {
+	case  GLUT_KEY_LEFT:
+		if (SelectionArrow == 570) {
+			SelectionArrow = 250;//Thì mũi tên sẽ chỉ về ô bên trái (320 là hoành độ của ô phía bên trái)
+		}
+		else if (SelectionArrow == 840) {
+			SelectionArrow = 570;//Thì mũi tên sẽ chỉ về ô bên trái (320 là hoành độ của ô phía bên trái)
+		}
+		else if (SelectionArrow == 815) {
+			SelectionArrow = 325;
+		}
+		break;
+	case VK_ENTER:
+		if (stage == 7) {
+			if (SelectionArrow == 250)//Nếu mũi tên đang ở bên trái thì gán stage = 1, tức là vào chế độ tạo game mới
+				stage = 2;
+			else if (SelectionArrow == 570)//Nếu mũi tên đang ở bên phải thì gán stage = 2, tức là vào chế độ Load
+				stage = 8;
+			else if (SelectionArrow == 840){
+				stage = 9;
+			}
+		}
+		else if (stage == 6){
+			if (SelectionArrow == 325) {
+				SetUpDefaultStartValue();//thì ta đặt lại các thông số như ban đầu và vào stage=0, hiển thị Menu chọn và chơi lại
+				onBrickGame = false;
+				brickGame = false;
+				stage = 0;
+				Sleep(100);
+			}
+			else if (SelectionArrow == 815)
+				stage = 4;
+		}
+		else if (stage == 11) {
+			LoadPlayerList();
+			for (int i = 0; i < playerList.size(); i++) {
+				if (player.name == playerList[i].name) {
+					if (player.score > playerList[i].score) {
+						playerList[i].score = player.score;
+					}
+					stage = 6;
+					SavePlayerList();
+					player.score = 0;
+					isLoaded = false;
+					return;
+				}
+			}
+			playerList.push_back(player);
+			SavePlayerList();
+			stage = 6;
+			player.score = 0;
+			isLoaded = false;
+		}
+		else if (stage == 9) {
+			stage = 0;
+			Sleep(100);
+		}
+		break;
+	case GLUT_KEY_RIGHT:
+		if (stage == 7) {
+			if (SelectionArrow == 570) {
+				SelectionArrow = 840;//Thì mũi tên sẽ chỉ về ô bên trái (320 là hoành độ của ô phía bên trái)
+			}
+			else if (SelectionArrow == 250) {
+				SelectionArrow = 570;//Thì mũi tên sẽ chỉ về ô bên trái (320 là hoành độ của ô phía bên trái)
+			}
+		}
+		if (stage == 0 || stage == 6) {
+			if (SelectionArrow == 325) 
+				SelectionArrow = 815;
+		} 
+	
+		break;
+	case GLUT_KEY_F1:
+		Save();
+		SetStage(0);
+		break;
+	case GLUT_KEY_F2:
+		SetStage(2);
+		break;
+	default:
+		break;
+	}
+}
+extern SCREEN PingPong;
+/*
+	Hàm catch các phím đặc biệt
+*/
+void Tasten(int key, int x, int y)
+{
+	PingPong.switchArrow(key);
+}
+
+/*
+	Hàm catch các phím thông thường
+*/
+
+
+void normalKeyCatch(unsigned char key, int x, int y) {
+	
+	if (key == (char)VK_ENTER) {
+		PingPong.switchArrow(key);
+	}
+	else if (key == 'p' && PingPong.getterStage() == 2) {
+		PingPong.SetStage(10);
+	}
+	else if (key == 27) {
+		exit(0);
+	}
+	else if (key == 'a' && PingPong.getterStage() == 2) {
+		autoPlayWanted = true;
+	}
+	else if (key >= 'a' && key <= 'z') {
+		string temp = PingPong.getPlayerName();
+		temp += key;
+		PingPong.setPlayerName(temp);
+	}
+	else if (key == '\b') {
+		string temp = PingPong.getPlayerName();
+		if (temp.size() != 0) {
+			temp.resize(temp.size() - 1);
+			PingPong.setPlayerName(temp);
+		}
+	}
+}
+
+/*
+	Hàm hiển thị màn hình pause game
+	*/
+void SCREEN::PauseInterface() {
+	glColor3f(1.0, 0.5, 0.5);
+	PrintText(Width / 2 - 300,Height / 2, "PRESS F1 TO SAVE GAME!!! F2 TO CONTINUE");
+}
+
+/*
+	Lưu Danh sách người chơi gồm tên và điểm
+*/
+
+void SCREEN::SavePlayerList() {
+	freopen("PlayerData.txt", "wt", stdout);
+	for (int i = 0; i < playerList.size(); i++) {
+		if (playerList[i].name != "") {
+			cout << playerList[i].name << " " << playerList[i].score;
+			if (i < playerList.size() - 1) {
+				cout << endl;
+			}
+		}
+	}
+	cout.clear();
+	fclose(stdout);
+}
+/*
+	Đọc file chứa thông tin bảng xếp hạng
+*/
+
+void SCREEN::LoadPlayerList() {
+	freopen("PlayerData.txt", "rt", stdin);
+	playerList.resize(0);
+	PLAYER oldPlayer;
+	while (!cin.eof()) {
+		cin >> oldPlayer.name >> oldPlayer.score;
+		if (oldPlayer.name!="")
+			playerList.push_back(oldPlayer);
+	}
+	cin.clear();
+	fclose(stdin);
+
+}
+
+
 void SCREEN::UpdateScreen()//Hàm cập nhật toàn bộ thông tin của các đối tượng trên màn hình
 {
 	switch (stage)
@@ -535,15 +896,21 @@ void SCREEN::UpdateScreen()//Hàm cập nhật toàn bộ thông tin của các 
 		}
 		else if (GetAsyncKeyState(VK_RIGHT))//Ngược lại nếu ta nhấn phím mũi tên phải, tức là chọn ô "TWO PLAYER"
 		{
-			SelectionArrow = 815;//Thì mũi tên sẽ chỉ về ô bên phải (815 là hoành độ của ô phía bên phải)
+			SelectionArrow = 840;//Thì mũi tên sẽ chỉ về ô bên phải (815 là hoành độ của ô phía bên phải)
 		}
-		else if (GetAsyncKeyState(VK_ENTER))//Nếu ta nhấn phím ENTER, tức là xác nhận việc chọn
+		else if (GetAsyncKeyState(VK_ENTER) & 0x8000)//Nếu ta nhấn phím ENTER, tức là xác nhận việc chọn
 		{
 			if (SelectionArrow == 320)//Nếu mũi tên đang ở bên trái thì gán stage = 1, tức là vào chế độ 1 người chơi
 				stage = 1;
-			if (SelectionArrow == 815)//Nếu mũi tên đang ở bên phải thì gán stage = 2, tức là vào chế độ 2 người chơi
-				stage = 2;
+			if (SelectionArrow == 840)//Nếu mũi tên đang ở bên phải thì gán stage = 2, tức là vào chế độ 2 người chơi
+				stage = 7;
 		}
+		
+		break;
+	case 7:
+		glutSpecialFunc(Tasten);
+		glutKeyboardFunc(normalKeyCatch);
+		Sleep(100);
 		break;
 	case 1://Trường hợp 1 người chơi
 		if (LeftRacket.Score == WinScore || RightRacket.Score == WinScore)//Nếu có 1 người chơi đạt đủ điểm WinScore thì chuyển sang giai đoạn 3
@@ -559,8 +926,10 @@ void SCREEN::UpdateScreen()//Hàm cập nhật toàn bộ thông tin của các 
 		UpdateLeftRacket();		//Cập nhật thông tin vợt của người chơi bên trái
 		UpdateRightRacket();	//Cập nhật thông tin vợt của người chơi bên phải
 		break;*/
-		UpdateBallForBrickGame();
 		UpdateBrickGameRacket();
+		UpdateBallForBrickGame();
+		glutKeyboardFunc(normalKeyCatch);
+		//UpdateAutoBrickGameRacket();
 		break;
 	case 3://Giai đoạn sau khi chơi xong và đã xác định được người thắng
 		//Ta thiết lập các thông số của 3 đối tượng: bóng, vợt trái, vợt phải lại giống ban đầu, và không di chuyển chúng nữa
@@ -606,32 +975,64 @@ void SCREEN::UpdateScreen()//Hàm cập nhật toàn bộ thông tin của các 
 		}
 		break;
 	case 6:
+		
 		//Lúc này ta cũng in ra 2 ô lựa chọn là "PLAY AGAIN" và "QUIT GAME"
-		if (GetAsyncKeyState(VK_LEFT))//Nếu chọn ô bên trái
-		{
-			SelectionArrow = 320;//Di chuyển tọa độ mũi tên sang trái
-		}
-		else if (GetAsyncKeyState(VK_RIGHT))//Nếu chọn ô bên phải
-		{
-			SelectionArrow = 815;//Di chuyển mũi tên sang phải
-		}
-		else if (GetAsyncKeyState(VK_ENTER))//Nếu nhấn ENTER, tức là xác nhận đã chọn xong
-		{
-			Sleep(100);//Tạm ngưng việc tương tác với bàn phím trong 100 miliseconds
-						//Nếu ta không có hàm tạm ngưng này thì khi ta ấn ENTER, sẽ bị đè phím và chương trình tự động vào lại chế độ 1 người chơi nếu ta chọn PLAY AGAIN
-			if (SelectionArrow == 320)//Nếu mũi tên ở bên trái, tức là chọn PLAY AGAIN 
-			{
-				SetUpDefaultStartValue();//thì ta đặt lại các thông số như ban đầu và vào stage=0, hiển thị Menu chọn và chơi lại
-				onBrickGame = false;
-				brickGame = false;
-			}
-			else if (SelectionArrow == 815)//Nếu mũi tên ở bên phải, tức là chọn QUIT GAME, thì gán stage =4 và thoát game
-				stage = 4;
-		}
+		glutSpecialFunc(Tasten);
+		
+		glutKeyboardFunc(normalKeyCatch);
+		Sleep(100);
+		break;
+	case 8:
+		Load();
+		break;
+	case 9:
+		DisplayLeaderBoard();
+		break;
+	case 10:
+		PauseInterface();
+		break;
+	case 11:
+		getUserName();
 		break;
 	}
 }
 
+/*
+	Hàm load bảng danh sách
+*/
+
+void SCREEN::DisplayLeaderBoard() {
+	glutKeyboardFunc(normalKeyCatch); // catch enter nếu người dùng bấm sẽ trở lại màn hình menu
+	if (!isLoaded) { // kiểm tra xem file đã load chưa, nếu load rồi thì không cần load nữa
+		LoadPlayerList();
+		sortPlayerList(); // sort từ lớn đến bé
+		isLoaded = true;
+	}
+	class Rectangle b;
+	// vẽ các thông tin cần thiết
+	glClearColor(0.0, 0.0, 0.0,0.0);
+	glColor3f(1.0, 1.0, 1.0);
+	PrintText(10, TopBar + 10, " NAME ");
+	PrintText(Width/2 + 100, TopBar + 10, " SCORE ");
+	b.Update(0, Width, TopBar, TopBar - 10);
+	b.Draw();
+	b.Update(Width / 2 - 5, Width/2, TopBar, 0);
+	b.Draw();
+	// hiện các tên đã lưu
+	int startX = 100, startY = 550, gap = 50;
+	for (int i = 0; i < playerList.size(); i++) {
+		if (playerList[i].name != "") {
+			PrintText(startX, startY, playerList[i].name);
+			PrintText(Width / 2 + gap + 100, startY, to_string(playerList[i].score));
+			startY -= gap;
+		}
+	}
+
+}
+
+/*
+	Hàm hiển thị màn hình thua, tương tự như màn hình thua của bạn nhưng chỉnh sửa thông số + đổi từ ngữ
+*/
 void SCREEN::DisplayLostScreen() {
 	class Rectangle b;
 	//Ta thực hiện các thao tác tương tự ở phần case 0 để in ra 2 ô PLAY AGAIN và QUIT GAME
@@ -649,13 +1050,15 @@ void SCREEN::DisplayLostScreen() {
 	PrintText(500, TopBar - 200, "YOU LOST!!!");
 	PrintText(250, TopBar - 280, "PLAY AGAIN");
 	PrintText(750, TopBar - 280, "QUIT GAME");
+	player.name = "";
+	player.score = 0;
 	//
 
 	//Tương tự như đoạn code ở trong phần case 0 để hiển thị mũi tên chọn chế độ SelectionArrow
 	glColor3f(1.0, 0.2, 0.2);
 	glBegin(GL_TRIANGLES);
 	glVertex2f(SelectionArrow, TopBar - 310);
-	glVertex2f(SelectionArrow + 30, TopBar - 350);
+	glVertex2f(SelectionArrow+30, TopBar - 350);
 	glVertex2f(SelectionArrow - 30, TopBar - 350);
 	glEnd();
 }
@@ -686,6 +1089,42 @@ void SCREEN::SetUpDefaultStartValue()//Hàm khởi tạo các giá trị ban đ�
 	//
 	brick.Init();
 }
+
+/*
+	Hàm sort danh sách người chơi theo điểm tự bé đén lớn
+*/
+
+void SCREEN::sortPlayerList() {
+	for (int i = 0; i < playerList.size(); i++) {
+		for (int j = i + 1; j < playerList.size(); j++) {
+			if (playerList[i].score < playerList[j].score) {
+				swap(playerList[i], playerList[j]);
+			}
+		}
+	}
+}
+
+/*
+	Hàm lấy tên người chơi để hiển thị khi người chơi muốn xem bảng xếp hàng, sau 
+	khi người chơi thua thì game sẽ hỏi tên thông qua hàm này
+*/
+
+
+void SCREEN :: getUserName() {
+	
+	glutKeyboardFunc(normalKeyCatch);
+	class Rectangle b;
+	glClearColor(0.0, 0.0, 0.0, 0.0);//Đặt màu nền màn hình là màu den
+	glColor3f(1.0, 1.0, 1.0);
+	b.Update(Width / 2 - 100, Width / 2 + 100, Height / 2+50, Height / 2);
+	b.Draw();
+	PrintText(Width / 2 - 110, Height / 2 +56, "YOUR NAME : ");
+	glColor3f(0.0, 0.0, 0.0);
+	PrintText(Width / 2 - 90, Height / 2+10, player.name);
+
+}
+
+
 SCREEN::SCREEN()
 {
 }

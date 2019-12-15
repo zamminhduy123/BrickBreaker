@@ -20,6 +20,10 @@ void Rectangle::Update(float l, float r, float t, float b)//Hàm cập nhật th
 }
 Rectangle::Rectangle()
 {
+	Left = 0;
+	Right = 0;
+	Top = 0;
+	Bottom = 0;
 }
 
 

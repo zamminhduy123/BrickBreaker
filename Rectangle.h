@@ -27,6 +27,13 @@ public:
 	float getBottom() {
 		return Bottom;
 	}
+	void print() {
+		cout << Left << " " << Right << " " << Top << " " << Bottom;
+	}
+	void load()
+	{
+		cin >> Left >> Right >> Top >> Bottom;
+	}
 	Rectangle();
 	~Rectangle();
 };

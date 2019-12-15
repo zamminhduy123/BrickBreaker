@@ -7,10 +7,10 @@
 #include <random>
 using namespace std;
 
-#define maxBrick 10
+#define maxBrick 12
 #define xJump 75
 #define yJump 25
-#define xStartPoint 85
+#define xStartPoint 5
 #define yStartPoint 375
 #define space 25
 
@@ -30,6 +30,9 @@ public:
 	ITEM isCollide(BALL &ball);	
 	void spawnItem();			// xuất hiện ngẫu nhiên vật phẩm
 	void reduceItemTime();
+	void printSaveGame();
+	void loadBrick();
+	bool isEmpty();
 	Brick();
 	~Brick();
 };
